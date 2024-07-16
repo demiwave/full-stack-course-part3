@@ -6,13 +6,19 @@ const app = express()
 // using the middleware 'json-parser' from the express package
 app.use(express.json())
 
-// custom token to log the request body for POST requests
-morgan.token('body', (req) => {
-  return req.method === 'POST' ? JSON.stringify(req.body) : ''
-})
+// define custom token to log the request body for POST requests
+morgan.token('body', (req) => JSON.stringify(req.body))
 
-// using the middleware 'morgan' with 'tiny' configuration for all requests
-app.use(morgan('tiny'))
+// using the middleware 'morgan'...
+
+// define custom format for POST requests
+const postFormat = ':method :url :status :res[content-length] - :response-time ms :body'
+
+// use custom format for POST requests and 'tiny' for all other requests
+app.use((req, res, next) => {
+  const format = (req.method === 'POST' ? postFormat : 'tiny')
+  morgan(format)(req, res, next)
+})
 
 let persons = [
     { 
