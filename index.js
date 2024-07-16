@@ -1,6 +1,18 @@
 const express = require('express')
+const morgan = require('morgan')
+
 const app = express()
+
+// using the middleware 'json-parser' from the express package
 app.use(express.json())
+
+// custom token to log the request body for POST requests
+morgan.token('body', (req) => {
+  return req.method === 'POST' ? JSON.stringify(req.body) : ''
+})
+
+// using the middleware 'morgan' with 'tiny' configuration for all requests
+app.use(morgan('tiny'))
 
 let persons = [
     { 
