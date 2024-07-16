@@ -66,6 +66,31 @@ app.delete('/api/persons/:id', (request, response) =>{
     response.status(204).end()
 })
 
+// this function generate a random id with a big multiplier
+// so the chance of getting double ids is low - but still possible
+const generateId = max => Math.floor(Math.random() * max)
+
+// post request: posts a new person entry with name and number data
+// as well as a random id.
+app.post('/api/persons', (request, response) => {
+  const body = request.body
+  // make sure that a person can't be added if body content is empty
+  if(!body.name || !body.number) {
+    response.status(400).json({
+      error: 'content missing'
+    })
+  }
+
+  const person = {
+    id: generateId(1000000),
+    name: body.name,
+    number: body.number
+  }
+
+  persons = persons.concat(person)
+  response.json(person)
+})
+
 const PORT = 3001
 app.listen(PORT)
 console.log(`Server running on port ${PORT}`)
