@@ -56,6 +56,16 @@ app.get('/api/persons/:id', (request, response) => {
     }
 })
 
+// delete request: delete a specific person from persons by id if it exists
+app.delete('/api/persons/:id', (request, response) =>{
+    const id = Number(request.params.id)
+    // find the person by id
+    const person = persons.find(person => person.id === id)
+    persons = persons.filter(person => person.id !== id)
+    // in both cases - if person is found or not - we use the same status code    
+    response.status(204).end()
+})
+
 const PORT = 3001
 app.listen(PORT)
 console.log(`Server running on port ${PORT}`)
