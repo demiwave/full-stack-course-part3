@@ -46,6 +46,7 @@ app.get( '/api/info', (request, response) => {
 app.get('/api/persons/:id', (request, response) => {
     // Using Number() isn't necessary but it's more efficient and it may lead to errors otherwise
     const id = Number(request.params.id)
+
     // find the person by id
     const person = persons.find(person => person.id === id)
     if(person) {
@@ -59,9 +60,11 @@ app.get('/api/persons/:id', (request, response) => {
 // delete request: delete a specific person from persons by id if it exists
 app.delete('/api/persons/:id', (request, response) =>{
     const id = Number(request.params.id)
+
     // find the person by id
     const person = persons.find(person => person.id === id)
     persons = persons.filter(person => person.id !== id)
+
     // in both cases - if person is found or not - we use the same status code    
     response.status(204).end()
 })
@@ -70,14 +73,21 @@ app.delete('/api/persons/:id', (request, response) =>{
 // so the chance of getting double ids is low - but still possible
 const generateId = max => Math.floor(Math.random() * max)
 
-// post request: posts a new person entry with name and number data
-// as well as a random id.
+// post request: posts a new person entry with name, number data and a random id
 app.post('/api/persons', (request, response) => {
   const body = request.body
-  // make sure that a person can't be added if body content is empty
+
+  // a person can't be added if name and number data content is empty
   if(!body.name || !body.number) {
-    response.status(400).json({
+    return response.status(400).json({
       error: 'content missing'
+    })
+  }
+
+  // check if name already exists
+  if(persons.find(person => person.name === body.name)) {
+    return response.status(400).json({
+      error: 'name must be unique'
     })
   }
 
