@@ -4,6 +4,11 @@ const cors = require('cors')
 
 const app = express()
 
+// use static to to make Express show static content,
+// the page index.html and the JavaScript, etc.,
+// it fetches
+app.use(express.static('dist'))
+
 // use cors to allow for requests from all origins:
 app.use(cors())
 
