@@ -1,7 +1,11 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 
 const app = express()
+
+// use cors to allow for requests from all origins:
+app.use(cors())
 
 // using the middleware 'json-parser' from the express package
 app.use(express.json())
