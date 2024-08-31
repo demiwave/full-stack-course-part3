@@ -1,3 +1,3 @@
 # full-stack-course-part3
 
-https://mdan22-fsc.onrender.com/
+https://demiwave-fsc.onrender.com/
