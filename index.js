@@ -1,6 +1,11 @@
+// important: envs need to be available globally before the code
+// from the other modules is imported.
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+
+const Person = require('./models/person')
 
 const app = express()
 
@@ -55,8 +60,12 @@ let persons = [
 // get request: persons array is send as a JSON-string
 // Express automatically sets the Content-Type header
 // with the appropriate value of application/json
+// we can now use Person.find to fetch a specific person from MongoDB
+// no other changes needed here
 app.get( '/api/persons', (request, response) => {
+  Person.find({}).then(persons => {
     response.json(persons)
+  })
 })
 
 const numberOfEntries = persons.length;
@@ -128,6 +137,8 @@ app.post('/api/persons', (request, response) => {
   response.json(person)
 })
 
-const PORT = process.env.PORT || 3001
-app.listen(PORT)
-console.log(`Server running on port ${PORT}`)
+const PORT = process.env.PORT
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+  }
+)
