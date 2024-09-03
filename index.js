@@ -68,6 +68,7 @@ app.get( '/api/persons', (request, response) => {
   })
 })
 
+// this doesn't work anymore because we use MongoDB
 const numberOfEntries = persons.length;
 const currentDate = new Date();
 
@@ -79,18 +80,18 @@ app.get( '/api/info', (request, response) => {
 })
 
 // get request: get data of specific person by id
+// I already made some changes here but wrong ids lead to app crash
+// error handling is needed and will be added later
 app.get('/api/persons/:id', (request, response) => {
-    // Using Number() isn't necessary but it's more efficient and it may lead to errors otherwise
-    const id = Number(request.params.id)
-
-    // find the person by id
-    const person = persons.find(person => person.id === id)
-    if(person) {
+    // finding the person via findById makes the code simpler
+    Person.findById(request.params.id).then(person => {
+      if(person) {
         response.json(person)
-    }
-    else {
-        response.status(404).end() // the requested data was not found
-    }
+      }
+      else {
+          response.status(404).end() // the requested data was not found
+      }
+    })
 })
 
 // delete request: delete a specific person from persons by id if it exists
@@ -114,12 +115,14 @@ app.post('/api/persons', (request, response) => {
   const body = request.body
 
   // a person can't be added if name and number data content is empty
+  // '!body.name' and 'body.name === undefined' do the same thing 
   if(!body.name || !body.number) {
     return response.status(400).json({
       error: 'content missing'
     })
   }
 
+  // this doesn't work anymore because we use MongoDB
   // check if name already exists
   if(persons.find(person => person.name === body.name)) {
     return response.status(400).json({
@@ -127,14 +130,17 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-  const person = {
-    id: generateId(1000000),
+  const person = new Person({
+    //id: generateId(1000000),
     name: body.name,
     number: body.number
-  }
+  })
 
-  persons = persons.concat(person)
-  response.json(person)
+  person.save().then(savedPerson => {
+    // because we use .save method we don't need .concat anymore
+    response.json(savedPerson)
+  })
+  
 })
 
 const PORT = process.env.PORT
