@@ -96,14 +96,19 @@ app.get('/api/persons/:id', (request, response) => {
 
 // delete request: delete a specific person from persons by id if it exists
 app.delete('/api/persons/:id', (request, response) =>{
-    const id = Number(request.params.id)
 
-    // find the person by id
-    const person = persons.find(person => person.id === id)
-    persons = persons.filter(person => person.id !== id)
+  Person.findByIdAndDelete(request.params.id)
+  .then(result => {
+    // in both cases (id exists or not) we respond with the same code
+    response.status(204).end() // 204 means "no content"
+  })
+  .catch(error => {
+    console.log(error)
+    response.status(500) // internal server error, the console displays more info about the error
+  })
 
-    // in both cases - if person is found or not - we use the same status code    
-    response.status(204).end()
+  // this will be uncommented in part 3.16 but we also need the error middleware for it work
+  // .catch(error => next(error)) // next passes exceptions to the error handler
 })
 
 // this function generate a random id with a big multiplier
