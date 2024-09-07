@@ -104,7 +104,7 @@ app.delete('/api/persons/:id', (request, response, next) =>{
 })
 
 // post request: posts a new person entry with name, number data and a random id
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   // a person can't be added if name and number data content is empty
@@ -115,26 +115,44 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-  // this doesn't work anymore because we use MongoDB
-  // check if name already exists
-  if(persons.find(person => person.name === body.name)) {
-    return response.status(400).json({
-      error: 'name must be unique'
-    })
-  }
-
-  const person = new Person({
-    //id: generateId(1000000),
+  // check if a person with the same name already exists
+  const newPerson = new Person({
     name: body.name,
     number: body.number
   })
 
-  person.save().then(savedPerson => {
+  newPerson.save().then(savedPerson => {
     // because we use .save method we don't need .concat anymore
     response.json(savedPerson)
   })
-  
+  .catch(error => next(error))
 })
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+
+  // new Person() operator not needed since we are NOT posting a new
+  // person - we r just updating the data of an existing person object
+  const person = {
+    name: body.name,
+    number: body.number
+  }
+
+  // we need the {new: true} parameter so the modified version
+  // of the person 'updatedPerson' is given to the event handler
+  Person.findByIdAndUpdate(request.params.id, person, {new: true})
+  .then(updatedPerson =>
+    response.json(updatedPerson)
+  )
+  .catch(error => next(error))
+})
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+// handler of requests with unknown endpoint
+app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
