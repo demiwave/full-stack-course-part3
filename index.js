@@ -1,29 +1,27 @@
-// important: envs need to be available globally before the code
-// from the other modules is imported.
+// important: envs need to be available globally before
+// the code from other modules is imported.
 require('dotenv').config()
-const express = require('express')
-const morgan = require('morgan')
-const cors = require('cors')
 
+const express = require('express')
+const app = express()
+const cors = require('cors')
+const morgan = require('morgan')
 const Person = require('./models/person')
 
-const app = express()
-
-// use static to to make Express show static content,
-// the page index.html and the JavaScript, etc.,
-// it fetches
+// use static to make Express show static content, the
+// page index.html and the JavaScript, etc. which it fetches
 app.use(express.static('dist'))
 
-// use cors to allow for requests from all origins:
+// use cors to allow for requests from all origins
 app.use(cors())
 
-// using the middleware 'json-parser' from the express package
+// use the middleware 'json-parser' from the express package
 app.use(express.json())
+
+// using the middleware 'morgan'...
 
 // define custom token to log the request body for POST requests
 morgan.token('body', (req) => JSON.stringify(req.body))
-
-// using the middleware 'morgan'...
 
 // define custom format for POST requests
 const postFormat = ':method :url :status :res[content-length] - :response-time ms :body'
@@ -95,25 +93,15 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
 // delete request: delete a specific person from persons by id if it exists
-app.delete('/api/persons/:id', (request, response) =>{
+app.delete('/api/persons/:id', (request, response, next) =>{
 
   Person.findByIdAndDelete(request.params.id)
   .then(result => {
     // in both cases (id exists or not) we respond with the same code
     response.status(204).end() // 204 means "no content"
   })
-  .catch(error => {
-    console.log(error)
-    response.status(500) // internal server error, the console displays more info about the error
-  })
-
-  // this will be uncommented in part 3.16 but we also need the error middleware for it work
-  // .catch(error => next(error)) // next passes exceptions to the error handler
+  .catch(error => next(error)) // next passes exceptions to the error handler
 })
-
-// this function generate a random id with a big multiplier
-// so the chance of getting double ids is low - but still possible
-const generateId = max => Math.floor(Math.random() * max)
 
 // post request: posts a new person entry with name, number data and a random id
 app.post('/api/persons', (request, response) => {
@@ -147,6 +135,20 @@ app.post('/api/persons', (request, response) => {
   })
   
 })
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+  if(error.name === 'CastError') {
+    return response.status(400).send({error:'malformatted id'})
+  }
+  return(error)
+}
+
+// this has to be the last loaded middleware,
+// also all the routes should be registered before this!
+
+// handler of requests that result in errors
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
