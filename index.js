@@ -66,15 +66,17 @@ app.get( '/api/persons', (request, response) => {
   })
 })
 
-// this doesn't work anymore because we use MongoDB
-const numberOfEntries = persons.length;
-const currentDate = new Date();
-
 // get request: /api/info displays number of entries/persons and date of the request
-app.get( '/api/info', (request, response) => {
-    response.send(
-        `<p>Phonebook has info for ${numberOfEntries} people<br/><br/>${currentDate}</p>`
-    )
+app.get( '/api/info', (request, response, next) => {
+    Person.countDocuments({})
+    .then(numberOfEntries => {
+      currentDate = new Date();
+      response.send(
+        `<p>Phonebook has info for ${numberOfEntries} people<p/>
+         <p/>${currentDate}</p>`
+      )
+    })
+    .catch(error => next(error))
 })
 
 // get request: get data of specific person by id
@@ -82,7 +84,8 @@ app.get( '/api/info', (request, response) => {
 // error handling is needed and will be added later
 app.get('/api/persons/:id', (request, response) => {
     // finding the person via findById makes the code simpler
-    Person.findById(request.params.id).then(person => {
+    Person.findById(request.params.id)
+    .then(person => {
       if(person) {
         response.json(person)
       }
@@ -90,6 +93,7 @@ app.get('/api/persons/:id', (request, response) => {
           response.status(404).end() // the requested data was not found
       }
     })
+    .catch(error => next(error))
 })
 
 // delete request: delete a specific person from persons by id if it exists
@@ -159,7 +163,7 @@ const errorHandler = (error, request, response, next) => {
   if(error.name === 'CastError') {
     return response.status(400).send({error:'malformatted id'})
   }
-  return(error)
+  next(error)
 }
 
 // this has to be the last loaded middleware,
