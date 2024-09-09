@@ -32,29 +32,6 @@ app.use((req, res, next) => {
   morgan(format)(req, res, next)
 })
 
-let persons = [
-    { 
-      id: 1,
-      name: "Arto Hellas", 
-      number: "040-123456"
-    },
-    { 
-      id: 2,
-      name: "Ada Lovelace", 
-      number: "39-44-5323523"
-    },
-    { 
-      id: 3,
-      name: "Dan Abramov", 
-      number: "12-43-234345"
-    },
-    { 
-      id: 4,
-      name: "Mary Poppendieck", 
-      number: "39-23-6423122"
-    }
-]
-
 // get request: persons array is send as a JSON-string
 // Express automatically sets the Content-Type header
 // with the appropriate value of application/json
@@ -133,21 +110,20 @@ app.post('/api/persons', (request, response, next) => {
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  const body = request.body
-
-  // new Person() operator not needed since we are NOT posting a new
-  // person - we r just updating the data of an existing person object
-  const person = {
-    name: body.name,
-    number: body.number
-  }
+  const { name, number } = request.body
 
   // we need the {new: true} parameter so the modified version
   // of the person 'updatedPerson' is given to the event handler
-  Person.findByIdAndUpdate(request.params.id, person, {new: true})
-  .then(updatedPerson =>
-    response.json(updatedPerson)
+  Person.findByIdAndUpdate(
+    request.params.id,
+    { name, number },
+    // added runValidators: true, context: 'query'
+    // so the validation works for PUT route
+    { new: true, runValidators: true, context: 'query' }
   )
+  .then(updatedPerson => {
+    response.json(updatedPerson)
+  })
   .catch(error => next(error))
 })
 
@@ -163,6 +139,10 @@ const errorHandler = (error, request, response, next) => {
   if(error.name === 'CastError') {
     return response.status(400).send({error:'malformatted id'})
   }
+  else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
+
   next(error)
 }
 

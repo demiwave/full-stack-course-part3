@@ -18,8 +18,15 @@ mongoose.connect(url)
 
 // define the schema for a person and the matching model
 const personSchema = new mongoose.Schema({
-    name: String,
-    number: String,
+  // we define constraints for attribute 'name' of type 'String'
+  name: {
+    type: String,
+    minLength: 3,
+    required: true
+  },
+
+  // here we could define constraints for attribute 'number' of type 'String'
+  number: String,
 })
 
 personSchema.set('toJSON', {
@@ -32,4 +39,5 @@ personSchema.set('toJSON', {
 
 // The public interface of the module is defined by setting
 // a value to the module.exports variable
-module.exports = mongoose.model('person', personSchema)
+// changed 'person' to 'Person' to match the error msg in solution
+module.exports = mongoose.model('Person', personSchema)
