@@ -26,7 +26,18 @@ const personSchema = new mongoose.Schema({
   },
 
   // here we could define constraints for attribute 'number' of type 'String'
-  number: String,
+  // do 3.20* here
+
+  number: {
+    type: String,
+    minLength: 8,
+    validate: {
+      validator: function(v) {
+        return /^\d{2,3}-\d+$/.test(v);
+      },
+    },
+    required: true
+  }
 })
 
 personSchema.set('toJSON', {
