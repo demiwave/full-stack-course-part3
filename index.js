@@ -157,3 +157,5 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
   }
 )
+
+// 3.21: I verified that everything works at https://mdan22-fsc.onrender.com/ as well
