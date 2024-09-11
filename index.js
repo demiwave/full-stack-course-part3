@@ -8,8 +8,8 @@ const cors = require('cors')
 const morgan = require('morgan')
 const Person = require('./models/person')
 
-// use static to make Express show static content, the
-// page index.html and the JavaScript, etc. which it fetches
+// use static to make Express show static content, the
+// page index.html and the JavaScript, etc. which it fetches
 app.use(express.static('dist'))
 
 // use cors to allow for requests from all origins
@@ -45,9 +45,9 @@ app.get( '/api/persons', (request, response) => {
 
 // get request: /api/info displays number of entries/persons and date of the request
 app.get( '/api/info', (request, response, next) => {
-    Person.countDocuments({})
+  Person.countDocuments({})
     .then(numberOfEntries => {
-      currentDate = new Date();
+      const currentDate = new Date()
       response.send(
         `<p>Phonebook has info for ${numberOfEntries} people<p/>
          <p/>${currentDate}</p>`
@@ -59,29 +59,29 @@ app.get( '/api/info', (request, response, next) => {
 // get request: get data of specific person by id
 // I already made some changes here but wrong ids lead to app crash
 // error handling is needed and will be added later
-app.get('/api/persons/:id', (request, response) => {
-    // finding the person via findById makes the code simpler
-    Person.findById(request.params.id)
+app.get('/api/persons/:id', (request, response, next) => {
+  // finding the person via findById makes the code simpler
+  Person.findById(request.params.id)
     .then(person => {
       if(person) {
         response.json(person)
       }
       else {
-          response.status(404).end() // the requested data was not found
+        response.status(404).end() // the requested data was not found
       }
     })
     .catch(error => next(error))
 })
 
 // delete request: delete a specific person from persons by id if it exists
-app.delete('/api/persons/:id', (request, response, next) =>{
+app.delete('/api/persons/:id', (request, response, next) => {
 
   Person.findByIdAndDelete(request.params.id)
-  .then(result => {
-    // in both cases (id exists or not) we respond with the same code
-    response.status(204).end() // 204 means "no content"
-  })
-  .catch(error => next(error)) // next passes exceptions to the error handler
+    .then(() => {
+      // in both cases (id exists or not) we respond with the same code
+      response.status(204).end() // 204 means "no content"
+    })
+    .catch(error => next(error)) // next passes exceptions to the error handler
 })
 
 // post request: posts a new person entry with name, number data and a random id
@@ -89,7 +89,7 @@ app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   // a person can't be added if name and number data content is empty
-  // '!body.name' and 'body.name === undefined' do the same thing 
+  // '!body.name' and 'body.name === undefined' do the same thing
   if(!body.name || !body.number) {
     return response.status(400).json({
       error: 'content missing'
@@ -102,11 +102,13 @@ app.post('/api/persons', (request, response, next) => {
     number: body.number
   })
 
-  newPerson.save().then(savedPerson => {
-    // because we use .save method we don't need .concat anymore
-    response.json(savedPerson)
-  })
-  .catch(error => next(error))
+  newPerson.save().then(
+    savedPerson => {
+      // because we use .save method we don't need .concat anymore
+      response.json(savedPerson)
+    }
+  )
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -121,10 +123,10 @@ app.put('/api/persons/:id', (request, response, next) => {
     // so the validation works for PUT route
     { new: true, runValidators: true, context: 'query' }
   )
-  .then(updatedPerson => {
-    response.json(updatedPerson)
-  })
-  .catch(error => next(error))
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
@@ -137,7 +139,7 @@ app.use(unknownEndpoint)
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
   if(error.name === 'CastError') {
-    return response.status(400).send({error:'malformatted id'})
+    return response.status(400).send({ error:'malformatted id' })
   }
   else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
@@ -154,8 +156,7 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-  }
-)
+  console.log(`Server running on port ${PORT}`)
+})
 
 // 3.21: I verified that everything works at https://mdan22-fsc.onrender.com/ as well
